@@ -1,0 +1,329 @@
+---
+title: "Annotations"
+subtitle: "Exercise 9 --- PMAP 8551/4551, SEMESTER YEAR"
+author: "YOUR NAME HERE"
+date: "DATE GOES HERE"
+date-format: "long"
+bibliography: "bib/references.bib"
+csl: "bib/chicago-notes.csl"
+format:
+  html:
+    toc: true
+    link-citations: false
+    knitr:
+      opts_chunk: 
+        dev: "ragg_png"
+        dpi: 300
+  typst:
+    toc: true
+    citeproc: true
+    include-before-body: 
+      text: |
+        #show link: set text(fill: rgb("e16462"))
+
+        // Keep track of previous heading levels
+        #let last-heading-level = state("last-heading-level", 0)
+
+        // Add page breaks before all level 1 headings
+        // Add page breaks before level 2 headings that don't come after level 1
+        #show heading: it => {
+          context {
+            let prev-level = last-heading-level.get()
+
+            if it.level == 1 {
+              pagebreak(weak: true)
+              last-heading-level.update(1)
+            } else if it.level == 2 {
+              if prev-level != 1 {
+                pagebreak(weak: true)
+              }
+              last-heading-level.update(2)
+            } else {
+              last-heading-level.update(it.level)
+            }
+          }
+          it
+        }
+  pdf:
+    toc: true
+  docx:
+    toc: true
+---
+
+# Task 1: Session check-in
+
+::: {.callout-tip title="Answer"}
+Hopefully you wrote some interesting and muddy things!
+:::
+
+
+# Task 2: Qatar Cars
+
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(scales)
+```
+
+## Data description
+
+One of the most common example datasets in R is `mtcars`, which contains data on a bunch of cars from 1974 (!). Some of the car companies in there don't even exist anymore, like Datsun. In 2020 [someone tracked down pictures of all the cars](https://www.robertmylesmcdonnell.com/posts/mtcars) in that dataset and they *scream* 1970s.
+
+The `mpg` dataset that comes with {ggplot2} was designed to be an improvement on `mtcars` and includes vehicles from 1999 and 2008, and lots of people use it for examples. I use it all the time! However, both `mpg` and `mtcars` are highly US-centric (many of you don't think in gallons and miles and feet and inches), and neither include details about electic cars, which are increasingly common today.
+
+To fix this, Paul Musgrave (based at Georgetown University in Qatar) and students in his international politics course collected data on cars for sale in 2025 in Qatar. See [his blog post here](https://musgrave.substack.com/p/introducing-the-qatar-cars-dataset) or his article in the *Journal of Political Science Education* [@Musgrave:2025] for more details about how and why he built it.
+
+Qatar Cars provides a more internationally-focused, modern cars-based demonstration dataset. It mirrors many of the columns in `mtcars`, but uses (1) non-US-centric makes and models, (2) 2025 prices, and (3) metric measurements, making it more appropriate for use as an example dataset outside the United States. It includes almost exactly the same variables as the `mtcars` dataset:
+
+- `origin` (the country associated with the car brand)
+- `make` (the brand of the car, such as Toyota or Land Rover)
+- `model` (the specific type of car, such as Land Cruiser or Defender)
+- `length`, `width`, and `height` (all in meters)
+- `trunk` capacity (measured in liters)
+- fuel `economy` (measured in liters per 100 km)
+- `performance` (time in seconds to accelerate from 0 to 100km/h)
+- `mass` in kilograms
+- `price` in 2025 Qatari riyals
+- `type` (the type of the car, such as coupe, sedan, or SUV)
+- `enginetype` (electric, hybrid, or petrol)
+
+Paul and I created an R package for the data named [{qatarcars}](https://profmusgrave.github.io/qatarcars/) that can be used as a toy dataset and general replacement for `mtcars` and `mpg`. 
+
+For this exercise, you're going to play with it!
+
+The code below loads and cleans the data. **You don't need to modify anything in this chunk of code---you only need to run it.**
+
+::: {.callout-note}
+Technically all you really need to do is run `library(qatarcars)`, but we only recently submitted this to CRAN and it not might be accepted and published when you do this assignment. So for now you're loading a special kind of .rds file that's like a CSV, but works only with R. If you want a CSV version or a Stata version, find those at <https://profmusgrave.github.io/qatarcars/>
+:::
+
+```{r}
+#| label: load-data
+#| warning: false
+#| message: false
+
+qatarcars <- readRDS("data/qatarcars.rds")
+```
+
+## Recreate plot
+
+Run the code chunk below to see a plot.
+
+```{r fig.path="images/"}
+#| label: recreate-me-1
+#| fig-width: 6
+#| fig-height: 4.25
+#| echo: false
+#| ref.label: recreation-plot-1
+```
+
+Use `ggplot()` and some `annotate()` layers in the chunk below to re-create the plot above using the `qatarcars` dataset.
+
+**Some hints!**
+
+- You'll need to rerun the plot code a lot as you fiddle with exact positioning. Don't try to add all the annotations and adjustments all at once---focus on one little thing at at time.
+- This plot is 6 inches wide and 4.25 inches tall. I recommend setting those dimensions in the chunk options before you start tinkering so that the annotations are positioned and sized the way you intend them to be when you render the document.
+- At the time of data collection in January 2025, 1 USD ≈ 3.64 QAR. To convert from Qatari Riyals to US dollars, divide `price` by 3.64. You'll probably want to make a copy of `qatarcars` and use `mutate()` to make USD version of price.
+- Notice that the y-axis is logged and uses automatic dollar labels. You'll want to use `scale_y_log10()` and something from the {scales} package for adjusting the labels. [See this FAQ post](https://datavizf25.classes.andrewheiss.com/news/2025-10-08_faqs_week_06.html#i-have-numbers-like-20000-and-want-them-formatted-with-commas-like-20000.-can-i-do-that-automatically) for help.
+- The points are colored using the "Set1" palette from Color Brewer (see <https://colorbrewer2.org/#type=qualitative&scheme=Set1&n=3>). You can use that automatically with `scale_color_brewer(SOMETHING)`.
+- The hex codes for those colors (if you want your anotations to match the points) are `#e41a1c`, `#377eb8`, and `#4daf4a`
+- Remember that you can use `\n` to add a linebreak in a label, like `label = "First line\nsecond line"`
+- This plot uses `theme_minimal()` and uses `theme()` to make the plot title bold
+
+::: {.callout-tip title="Answer"}
+
+Here's how I made that plot!
+
+:::
+
+```{r}
+#| label: recreation-plot-1
+#| fig-width: 6
+#| fig-height: 4.25
+
+data_to_plot <- qatarcars |> 
+  mutate(price_usd = price / 3.64)
+
+ggplot(data_to_plot, aes(x = performance, y = price_usd, color = enginetype)) +
+  annotate(
+    geom = "rect",
+    xmin = 2.5, xmax = 8.5, ymin = 25000, ymax = 250000,
+    fill = "#e41a1c", alpha = 0.1
+  ) +
+  geom_point(size = 2) +
+  labs(y = "Price (USD)") +
+  annotate(
+    geom = "label",
+    x = 4, y = 2200604, hjust = 0,
+    label = "The Lotus Evija is a\n$2.2 million electric hypercar",
+    color = "#e41a1c"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 4, xend = 3.25, y = 2200604, yend = 2200604,
+    color = "#e41a1c", arrow = arrow(angle = 15, length = unit(0.5, "lines"))
+  ) +
+  annotate(
+    geom = "label",
+    x = 9.5, y = 250000, hjust = 0, vjust = 1,
+    label = "Electric cars tend to\naccelerate quickly!",
+    fill = "#e41a1c", color = "white", fontface = "bold"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 9.5, xend = 8.5, y = 140000, yend = 140000,
+    color = "#e41a1c", arrow = arrow(angle = 15, length = unit(0.5, "lines"))
+  ) +
+  scale_y_log10(labels = label_currency()) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    title = "The faster the acceleration, the higher the price",
+    subtitle = "Time to reach 100 km/h and price of cars for sale in Qatar"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+
+# Task 3: Extension
+
+Make another plot from `qatarcars`. It can be whatever you want: another scatterplot, a histogram, a density plot, a lollipop chart. Anything!
+
+Add some annotations to it with {ggrepel} or `geom_text()` or `geom_label()` or `annotate()`. Color some text with {ggtext} or {marquee}. Do something neat.
+
+**This is your chance to play around and explore.**
+
+::: {.callout-tip title="Answer"}
+
+Hopefully you did something neat! Here's something super fancy I did to play with the new-and-super-cool [{marquee} package](https://marquee.r-lib.org/).
+
+:::
+
+```{r}
+#| label: extension
+#| message: false
+#| fig-width: 6
+#| fig-height: 4.25
+
+library(marquee)
+library(ggsci)
+
+# Filter the data to only include cars that cost less than $200,000
+normal_people_cars <- qatarcars |>
+  mutate(price_usd = price / 3.64) |>
+  filter(price_usd < 200000) |>
+  # Make machine-readable names (e.g. PR China → pr_china)
+  mutate(
+    origin_clean = janitor::make_clean_names(origin, allow_dupes = TRUE)
+  ) |>
+  # Build marquee-styled country names (e.g. "{.pr_china China}")
+  mutate(
+    origin_fancy = glue::glue(
+      "{.<<origin_clean>> **<<origin>>**}",
+      .open = "<<",
+      .close = ">>"
+    )
+  )
+
+# Calculate average prices for ordering the countries
+normal_averages <- normal_people_cars |> 
+  group_by(origin_clean, origin_fancy) |> 
+  summarize(avg_price = mean(price_usd)) |> 
+  arrange(avg_price)
+
+
+# Use the first 8 colors from GitHub's "Primer" palette
+# https://nanx.me/ggsci/reference/pal_primer.html
+colors <- pal_primer(palette = "mark17")(8) |>
+  setNames(normal_averages$origin_clean)
+
+# Build marquee style tags
+country_styles <- classic_style() |> 
+  modify_style(tag = "pr_china", color = colors["pr_china"]) |> 
+  modify_style(tag = "south_korea", color = colors["south_korea"]) |> 
+  modify_style(tag = "japan", color = colors["japan"]) |> 
+  modify_style(tag = "sweden", color = colors["sweden"]) |> 
+  modify_style(tag = "usa", color = colors["usa"]) |> 
+  modify_style(tag = "uk", color = colors["uk"]) |> 
+  modify_style(tag = "germany", color = colors["germany"]) |> 
+  modify_style(tag = "italy", color = colors["italy"]) |> 
+  modify_style(tag = "sup", style(color = "grey40", size = relative(0.8), baseline = em(0.2))) |> 
+  modify_style(tag = "normal", background = "grey90", padding = skip_inherit(trbl(1)))
+
+# Create clone of geom_label()
+country_label_styles <- modify_style(
+  country_styles,
+  "body",
+  padding = skip_inherit(trbl(4)), border_radius = 3,
+  family = "Inter", size = 9
+)
+
+# Plot this puppy
+# Plot this puppy
+normal_people_cars |>
+  mutate(
+    origin_fancy = factor(origin_fancy, levels = normal_averages$origin_fancy)
+  ) |>
+  ggplot(aes(x = price_usd, y = origin_fancy)) +
+  geom_point(
+    aes(color = origin_fancy),
+    position = position_jitter(height = 0.15, seed = 1234),
+    size = 1.75, alpha = 0.8
+  ) +
+  # China label
+  annotate(
+    geom = "segment",
+    x = 60000, xend = 50000, y = 1, yend = 1,
+    color = colorspace::lighten(colors["pr_china"], 0.5),
+    arrow = arrow(angle = 15, length = unit(0.5, "lines"))
+  ) +
+  annotate(
+    geom = "marquee",
+    x = 60000, y = 1.1,
+    label = "In this data, all {.pr_china **Chinese**} cars cost less than $50,000",
+    fill = colorspace::lighten(colors["pr_china"], 0.9),
+    hjust = 0, width = unit(9.5, "lines"),
+    style = country_label_styles
+  ) +
+  # Germany label
+  annotate(
+    geom = "segment",
+    x = 110000, xend = 100000, y = 6, yend = 6.5,
+    color = colorspace::lighten(colors["germany"], 0.5),
+    arrow = arrow(angle = 15, length = unit(0.5, "lines"))
+  ) +
+  annotate(
+    geom = "marquee",
+    x = 110000, y = 5.5,
+    label = "{.germany **German**} cars have the greatest variation in price",
+    fill = colorspace::lighten(colors["germany"], 0.9),
+    hjust = 0, width = unit(8.5, "lines"),
+    style = country_label_styles
+  ) +
+  # Scales, labels, and theme stuff
+  scale_x_continuous(labels = label_currency()) +
+  scale_color_manual(values = unname(colors), guide = "none") +
+  labs(
+    x = "Price (USD)",
+    y = NULL,
+    title = "**Where do {.normal cars for normal people}{.sup *} come from?**",
+    subtitle = "{.sup *} Cars that cost less than $200,000"
+  ) +
+  theme_light(base_family = "Inter") +
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.title = element_marquee(style = country_styles),
+    plot.subtitle = element_marquee(
+      style = country_styles, color = "grey40", size = rel(0.8)
+    ),
+    axis.title.x = element_text(
+      hjust = 0, size = rel(0.8), face = "bold", vjust = 6.55
+    ),
+    axis.text.y.left = element_marquee(style = country_styles),
+    axis.ticks.y = element_blank()
+  )
+```
