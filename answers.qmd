@@ -15,11 +15,25 @@ format:
         dev: "ragg_png"
         dpi: 300
   typst:
-    toc: true
     citeproc: true
+    toc: true
+    toc-title: Contents
+    output-file: PREFIX_09-exercise.pdf
+    pdf-standard: ua-1
+    callout-appearance: minimal
+    include-in-header: 
+      text: |
+        // TOC stuff
+        // Make the title centered and slightly smaller than a full heading
+        #show outline: it => {
+          show heading: it => align(center, text(size: 0.75em, it))
+          it
+        }
     include-before-body: 
       text: |
-        #show link: set text(fill: rgb("e16462"))
+        // Color links with purple from viridis plasma: 
+        // viridisLite::viridis(8, option = "plasma", begin = 0.1, end = 0.9)[3]
+        #show link: set text(fill: rgb("9a169f"))
 
         // Keep track of previous heading levels
         #let last-heading-level = state("last-heading-level", 0)
@@ -114,10 +128,9 @@ Run the code chunk below to see a plot.
 
 ```{r fig.path="images/"}
 #| label: recreate-me-1
-#| fig-width: 6
-#| fig-height: 4.25
 #| echo: false
 #| ref.label: recreation-plot-1
+#| opts.label: true
 ```
 
 Use `ggplot()` and some `annotate()` layers in the chunk below to re-create the plot above using the `qatarcars` dataset.
@@ -143,6 +156,14 @@ Here's how I made that plot!
 #| label: recreation-plot-1
 #| fig-width: 6
 #| fig-height: 4.25
+#| fig-alt: |
+#|   Scatter chart of 2025 Qatar cars by acceleration and price on a
+#|   log-scaled y-axis. Time to reach 100 km/h on the x-axis, price in USD
+#|   on the y-axis. Points colored by engine type: electric (red), hybrid
+#|   (blue), and petrol (green). A red shaded rectangle highlights the cluster
+#|   of fast-accelerating electric vehicles. Annotations call out the $2.2
+#|   million Lotus Evija and note that electric cars tend to accelerate
+#|   quickly. Faster cars are generally more expensive.
 
 data_to_plot <- qatarcars |> 
   mutate(price_usd = price / 3.64)
@@ -208,6 +229,13 @@ Hopefully you did something neat! Here's something super fancy I did to play wit
 #| message: false
 #| fig-width: 6
 #| fig-height: 4.25
+#| fig-alt: |
+#|   Horizontal jitter strip chart of car prices by country of origin for
+#|   cars sold in Qatar in 2025 costing under $200,000. Country of origin on
+#|   the y-axis ordered from lowest to highest average price, price in USD on
+#|   the x-axis. Each point represents one model, colored by country. Marquee
+#|   annotations highlight that all Chinese cars fall under $50,000 and that
+#|   German cars show the greatest price variation of any country.
 
 library(marquee)
 library(ggsci)
